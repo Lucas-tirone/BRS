@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fluxo de Bagagem</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #f4f6f9;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #101828;
+      overflow-x: hidden;
+    }
+
+    .page-shell {
+      width: 100%;
+      min-height: 100vh;
+      padding: 32px 42px 45px;
+      overflow-x: hidden;
+    }
+
+    .passenger-card,
+    .baggage-flow {
+      width: 100%;
+      max-width: 2048px;
+      margin: 0 auto;
+      background: #fff;
+    }
+
+    .passenger-card {
+      border-radius: 22px;
+      padding: 28px 34px;
+      box-shadow: 0 14px 35px rgba(16, 24, 40, 0.08);
+      border: 1px solid #edf0f5;
+      margin-bottom: 24px;
+    }
+
+    .passenger-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #edf0f5;
+    }
+
+    .passenger-identity {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      min-width: 280px;
+    }
+
+    .passenger-avatar {
+      width: 70px;
+      height: 70px;
+      border-radius: 22px;
+      background: #fff4ed;
+      border: 1px solid #ffd8c2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ff5a00;
+      flex-shrink: 0;
+    }
+
+    .eyebrow {
+      display: block;
+      color: #667085;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .passenger-name {
+      font-size: 34px;
+      line-height: 1.1;
+      color: #111b2e;
+      font-weight: 800;
+    }
+
+    .passenger-subtitle {
+      margin-top: 8px;
+      color: #667085;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .current-status-box {
+      min-width: 315px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #fff7f2, #ffffff);
+      border: 1px solid #ffd5bd;
+      padding: 18px 20px;
+    }
+
+    .current-status-title {
+      color: #8a3100;
+      font-size: 15px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      margin-bottom: 8px;
+    }
+
+    .current-status-text {
+      color: #ff5a00;
+      font-size: 26px;
+      line-height: 1.15;
+      font-weight: 800;
+    }
+
+    .current-status-help {
+      margin-top: 7px;
+      color: #667085;
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .passenger-content {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 24px;
+      padding-top: 24px;
+    }
+
+    .flight-box,
+    .bags-box {
+      border-radius: 20px;
+      background: #f8fafc;
+      border: 1px solid #e6ebf2;
+      padding: 24px;
+    }
+
+    .box-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #111b2e;
+      font-size: 23px;
+      font-weight: 800;
+      margin-bottom: 20px;
+    }
+
+    .box-title svg {
+      color: #ff5a00;
+      flex-shrink: 0;
+    }
+
+    .flight-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .info-tile {
+      min-height: 105px;
+      padding: 18px;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px solid #edf0f5;
+    }
+
+    .info-label {
+      color: #667085;
+      font-size: 15px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      margin-bottom: 8px;
+    }
+
+    .info-value {
+      color: #111b2e;
+      font-size: 30px;
+      line-height: 1.05;
+      font-weight: 800;
+    }
+
+    .info-small {
+      margin-top: 7px;
+      color: #667085;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .route-tile {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr);
+      align-items: center;
+      gap: 18px;
+    }
+
+    .route-tile > div:first-child {
+      text-align: left;
+    }
+
+    .route-tile > div:last-child {
+      text-align: right;
+    }
+
+    .route-airport {
+      font-size: 36px;
+      color: #111b2e;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .route-city {
+      margin-top: 8px;
+      color: #667085;
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .route-arrow-icon {
+      width: 54px;
+      height: 54px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: #fff4ed;
+      color: #ff5a00;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 31px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .bags-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .summary-tile {
+      padding: 18px;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px solid #edf0f5;
+    }
+
+    .summary-value {
+      color: #111b2e;
+      font-size: 32px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .summary-label {
+      margin-top: 9px;
+      color: #667085;
+      font-size: 15px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+
+    .bag-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .bag-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px solid #edf0f5;
+    }
+
+    .bag-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      background: #fff4ed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ff5a00;
+      flex-shrink: 0;
+    }
+
+    .bag-name {
+      color: #111b2e;
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .bag-tag {
+      color: #667085;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .bag-weight {
+      min-width: 92px;
+      text-align: center;
+      border-radius: 14px;
+      background: #ecfdf3;
+      color: #16803a;
+      padding: 12px 11px;
+      font-size: 21px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .baggage-flow {
+      padding: 28px 34px 34px;
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 14px 35px rgba(16, 24, 40, 0.08);
+      border: 1px solid #edf0f5;
+      overflow: visible;
+    }
+
+    .baggage-flow .flow-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      padding-bottom: 20px;
+      margin-bottom: 22px;
+      border-bottom: 1px solid #edf0f5;
+    }
+
+    .baggage-flow .flow-kicker {
+      display: block;
+      color: #ff5a00;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .baggage-flow .flow-title {
+      color: #111b2e;
+      font-size: 28px;
+      line-height: 1.1;
+      font-weight: 800;
+    }
+
+    .baggage-flow .flow-subtitle {
+      max-width: 760px;
+      margin-top: 8px;
+      color: #667085;
+      font-size: 15px;
+      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    .baggage-flow .flow-current-status {
+      min-width: 270px;
+      flex-shrink: 0;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #fff7f2, #ffffff);
+      border: 1px solid #ffd8c2;
+    }
+
+    .baggage-flow .flow-current-status strong {
+      display: block;
+      color: #8a3100;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 6px;
+    }
+
+    .baggage-flow .flow-current-status span {
+      display: block;
+      color: #ff5a00;
+      font-size: 18px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+
+    .baggage-flow .steps {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      align-items: stretch;
+      position: relative;
+      min-width: 0;
+    }
+
+    .baggage-flow .step {
+      position: relative;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 18px;
+      border-radius: 22px;
+      background: #f8fafc;
+      border: 1px solid #e6ebf2;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+    }
+
+    .baggage-flow .step.active {
+      padding: 18px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #fff8f4 0%, #ffffff 100%);
+      border: 2px solid #ff5a00;
+      box-shadow: 0 16px 34px rgba(255, 90, 0, 0.10);
+    }
+
+    .baggage-flow .step-header {
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      min-height: 118px;
+      position: relative;
+      z-index: 2;
+      margin-bottom: 12px;
+    }
+
+    .baggage-flow .step-number {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #eef1f5, #d9dee6);
+      color: #1b2738;
+      font-size: 24px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .baggage-flow .active .step-number {
+      background: linear-gradient(180deg, #ff6b00, #ff4d00);
+      color: #fff;
+      box-shadow: 0 5px 12px rgba(255, 91, 0, 0.2);
+    }
+
+    .baggage-flow .step-content {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .baggage-flow .step-title {
+      color: #111b2e;
+      font-size: 20px;
+      line-height: 1.15;
+      font-weight: 800;
+      margin: 0 0 8px;
+      white-space: normal;
+    }
+
+    .baggage-flow .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      margin: 0 0 10px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      line-height: 1;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .baggage-flow .status-green {
+      color: #17801d;
+      background: #ddf3df;
+    }
+
+    .baggage-flow .status-blue {
+      color: #1268df;
+      background: #e0efff;
+    }
+
+    .baggage-flow .status-orange {
+      color: #b54708;
+      background: #ffedd5;
+    }
+
+    .baggage-flow .step-description {
+      color: #667085;
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    .baggage-flow .image-area {
+      width: 100%;
+      min-height: 220px;
+      margin-top: auto;
+      padding: 14px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid #edf0f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .baggage-flow .image-area img {
+      width: 100%;
+      max-width: 220px;
+      height: 180px;
+      object-fit: contain;
+      object-position: center center;
+      display: block;
+      transform: none;
+    }
+
+    .baggage-flow .step-footer {
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .baggage-flow .step-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid #edf0f5;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .baggage-flow .step-meta-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #cfd5df;
+      flex-shrink: 0;
+    }
+
+    .baggage-flow .step.done .step-meta-dot {
+      background: #2ca344;
+    }
+
+    .baggage-flow .step.active .step-meta-dot {
+      background: #ff5a00;
+    }
+
+    .baggage-flow .step-state {
+      color: #98a2b3;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .baggage-flow .step.done .step-state {
+      color: #17801d;
+    }
+
+    .baggage-flow .step.active .step-state {
+      color: #ff5a00;
+    }
+
+    .baggage-flow .progress {
+      margin-top: 22px;
+      padding: 16px 18px;
+      border-radius: 20px;
+      background: #f8fafc;
+      border: 1px solid #e6ebf2;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      align-items: start;
+      position: relative;
+      min-width: 0;
+      height: auto;
+    }
+
+    .baggage-flow .progress::before {
+      content: "";
+      position: absolute;
+      left: 12%;
+      right: 12%;
+      top: 38px;
+      height: 4px;
+      background: #e0e4ea;
+      border-radius: 999px;
+      z-index: 0;
+    }
+
+    .baggage-flow .progress-item {
+      position: relative;
+      min-height: 86px;
+      height: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      z-index: 1;
+    }
+
+    .baggage-flow .progress-item::before,
+    .baggage-flow .progress-item::after {
+      display: none;
+    }
+
+    .baggage-flow .progress-marker {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #fff;
+      border: 5px solid #cfd5df;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .baggage-flow .progress-marker.done {
+      background: #2ca344;
+      border-color: #2ca344;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+      box-shadow: 0 3px 8px rgba(44, 163, 68, 0.2);
+    }
+
+    .baggage-flow .progress-marker.current {
+      width: 42px;
+      height: 42px;
+      border: 5px solid #ffd9c7;
+      background: #fff;
+      position: relative;
+    }
+
+    .baggage-flow .progress-marker.current::before {
+      content: "";
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #ff5a00;
+      display: block;
+    }
+
+    .baggage-flow .progress-label {
+      color: #344054;
+      font-size: 12px;
+      line-height: 1.2;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 3px;
+    }
+
+    .baggage-flow .progress-time {
+      color: #667085;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      text-align: center;
+      position: static;
+      transform: none;
+    }
+    @media (max-width: 1300px) {
+      .passenger-content {
+        grid-template-columns: 1fr;
+      }
+
+      .baggage-flow .steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        min-width: 0;
+      }
+
+      .baggage-flow .progress {
+        min-width: 0;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page-shell {
+        padding: 14px 10px 24px;
+      }
+
+      .passenger-card,
+      .baggage-flow {
+        border-radius: 16px;
+      }
+
+      .passenger-card {
+        padding: 16px;
+      }
+
+      .passenger-top {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 14px;
+        padding-bottom: 16px;
+      }
+
+      .passenger-identity {
+        width: 100%;
+        min-width: 0;
+        gap: 12px;
+      }
+
+      .passenger-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 16px;
+      }
+
+      .passenger-avatar svg {
+        width: 28px;
+        height: 28px;
+      }
+
+      .eyebrow {
+        font-size: 11px;
+        margin-bottom: 3px;
+      }
+
+      .passenger-name {
+        font-size: 18px;
+        line-height: 1.15;
+      }
+
+      .passenger-subtitle,
+      .current-status-help {
+        font-size: 12px;
+      }
+
+      .passenger-subtitle {
+        margin-top: 4px;
+      }
+
+      .current-status-box {
+        width: 100%;
+        min-width: 0;
+        padding: 13px 14px;
+        border-radius: 15px;
+      }
+
+      .current-status-title {
+        font-size: 11px;
+        margin-bottom: 5px;
+      }
+
+      .current-status-text {
+        font-size: 18px;
+      }
+
+      .passenger-content {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding-top: 16px;
+      }
+
+      .flight-box,
+      .bags-box {
+        padding: 14px;
+        border-radius: 16px;
+      }
+
+      .box-title {
+        gap: 8px;
+        font-size: 17px;
+        margin-bottom: 12px;
+      }
+
+      .box-title svg {
+        width: 22px;
+        height: 22px;
+      }
+
+      .flight-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .info-tile {
+        min-height: auto;
+        padding: 12px;
+        border-radius: 14px;
+      }
+
+      .info-label {
+        font-size: 11px;
+        margin-bottom: 5px;
+      }
+
+      .info-value {
+        font-size: 20px;
+      }
+
+      .info-small {
+        margin-top: 5px;
+        font-size: 12px;
+      }
+
+      .route-tile {
+        grid-column: 1 / -1;
+        grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr);
+        gap: 8px;
+        align-items: center;
+      }
+
+      .route-tile > div:first-child {
+        text-align: left;
+      }
+
+      .route-tile > div:last-child {
+        text-align: right;
+      }
+
+      .route-airport {
+        font-size: 24px;
+      }
+
+      .route-city {
+        margin-top: 4px;
+        font-size: 12px;
+      }
+
+      .route-arrow-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 22px;
+        transform: none;
+      }
+
+      .bags-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .summary-tile {
+        padding: 12px;
+        border-radius: 14px;
+      }
+
+      .summary-value {
+        font-size: 22px;
+      }
+
+      .summary-label {
+        margin-top: 6px;
+        font-size: 11px;
+      }
+
+      .bag-list {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .bag-item {
+        grid-template-columns: 42px minmax(0, 1fr) auto;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 14px;
+      }
+
+      .bag-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 13px;
+      }
+
+      .bag-icon svg {
+        width: 30px;
+        height: 30px;
+      }
+
+      .bag-name {
+        font-size: 15px;
+        margin-bottom: 3px;
+      }
+
+      .bag-tag {
+        font-size: 11px;
+      }
+
+      .bag-weight {
+        grid-column: auto;
+        width: auto;
+        min-width: 66px;
+        padding: 9px 8px;
+        font-size: 14px;
+        border-radius: 12px;
+      }
+
+      .baggage-flow {
+        padding: 18px 14px 20px;
+      }
+
+      .baggage-flow .flow-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 14px;
+      }
+
+      .baggage-flow .flow-kicker {
+        font-size: 11px;
+        margin-bottom: 4px;
+      }
+
+      .baggage-flow .flow-title {
+        font-size: 20px;
+      }
+
+      .baggage-flow .flow-subtitle {
+        margin-top: 6px;
+        font-size: 12px;
+      }
+
+      .baggage-flow .flow-current-status {
+        min-width: 0;
+        width: 100%;
+        padding: 12px 13px;
+        border-radius: 14px;
+      }
+
+      .baggage-flow .flow-current-status strong {
+        font-size: 10px;
+        margin-bottom: 4px;
+      }
+
+      .baggage-flow .flow-current-status span {
+        font-size: 15px;
+      }
+
+      .baggage-flow .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: relative;
+        min-width: 0;
+        padding-left: 18px;
+      }
+
+      .baggage-flow .steps::before {
+        content: "";
+        position: absolute;
+        left: 7px;
+        top: 8px;
+        bottom: 8px;
+        width: 2px;
+        background: linear-gradient(180deg, #e5e7eb 0%, #d8dee8 100%);
+        border-radius: 999px;
+      }
+
+      .baggage-flow .step {
+        padding: 14px;
+        padding-left: 16px;
+        border-radius: 16px;
+        margin-left: 10px;
+        min-width: 0;
+      }
+
+      .baggage-flow .step::before {
+        content: "";
+        position: absolute;
+        left: -21px;
+        top: 18px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #fff;
+        border: 3px solid #cfd5df;
+        box-shadow: 0 0 0 4px #f4f6f9;
+      }
+
+      .baggage-flow .step.done::before {
+        background: #2ca344;
+        border-color: #2ca344;
+      }
+
+      .baggage-flow .step.active::before {
+        background: #ff5a00;
+        border-color: #ff5a00;
+      }
+
+      .baggage-flow .step.active {
+        padding: 14px;
+        padding-left: 16px;
+        border-radius: 16px;
+      }
+
+      .baggage-flow .step-header {
+        gap: 10px;
+        min-height: auto;
+        margin-bottom: 10px;
+      }
+
+      .baggage-flow .step-number {
+        width: 34px;
+        height: 34px;
+        font-size: 16px;
+      }
+
+      .baggage-flow .step-title {
+        font-size: 16px;
+        margin-bottom: 6px;
+      }
+
+      .baggage-flow .status-pill {
+        font-size: 11px;
+        padding: 6px 10px;
+        margin-bottom: 8px;
+      }
+
+      .baggage-flow .step-description {
+        font-size: 12px;
+      }
+
+      .baggage-flow .image-area {
+        min-height: 140px;
+        padding: 10px;
+        border-radius: 14px;
+        margin-top: 0;
+      }
+
+      .baggage-flow .image-area img {
+        max-width: 160px;
+        height: 120px;
+      }
+
+      .baggage-flow .step-footer {
+        margin-top: 10px;
+      }
+
+      .baggage-flow .step-meta {
+        font-size: 11px;
+        padding: 7px 10px;
+      }
+
+      .baggage-flow .step-state {
+        font-size: 10px;
+      }
+
+      .baggage-flow .progress {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page-shell">
+    <section class="passenger-card" aria-label="Dados do passageiro">
+      <div class="passenger-top">
+        <div class="passenger-identity">
+          <div class="passenger-avatar" aria-hidden="true">
+            <svg width="36" height="36" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="10" r="5" stroke="currentColor" stroke-width="2.2"/>
+              <path d="M7 27c1.4-5.4 4.5-8.1 9-8.1s7.6 2.7 9 8.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <div>
+            <span class="eyebrow">Passageiro</span>
+            <h1 class="passenger-name">MARIA OLIVEIRA SANTOS</h1>
+            <p class="passenger-subtitle">Localizador ABCDEF</p>
+          </div>
+        </div>
+
+        <aside class="current-status-box" aria-label="Status atual da bagagem">
+          <div class="current-status-title">Status atual</div>
+          <div class="current-status-text">Bagagem em trânsito para aeronave</div>
+          <!--<p class="current-status-help">Sua bagagem está indo para a aeronave.</p> -->
+        </aside>
+      </div>
+
+      <div class="passenger-content">
+        <section class="flight-box" aria-label="Dados do voo">
+          <h2 class="box-title">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M2.5 13.5 21 4.5l-6.2 16.8-3.6-7.4-8.7-.4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+            Dados do voo
+          </h2>
+
+          <div class="flight-grid">
+            <div class="info-tile">
+              <div class="info-label">Voo</div>
+              <div class="info-value">G3 1234</div>
+              <div class="info-small">Embarque confirmado</div>
+            </div>
+
+            <div class="info-tile">
+              <div class="info-label">Data</div>
+              <div class="info-value">30/04</div>
+              <div class="info-small">Saída 14:35</div>
+            </div>
+
+            <div class="info-tile route-tile">
+              <div>
+                <div class="info-label">Origem</div>
+                <div class="route-airport">GIG</div>
+                <div class="route-city">Rio de Janeiro</div>
+              </div>
+
+              <div class="route-arrow-icon" aria-hidden="true">→</div>
+
+              <div>
+                <div class="info-label">Destino</div>
+                <div class="route-airport">JFK</div>
+                <div
+                 class="route-city">Nova York
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="bags-box" aria-label="Bagagens do passageiro">
+          <h2 class="box-title">
+            <svg width="28" height="28" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+              <path d="M13 14v-3c0-3 2.5-5.5 5.5-5.5h3c3 0 5.5 2.5 5.5 5.5v3" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+              <rect x="9" y="14" width="22" height="21" rx="4" stroke="currentColor" stroke-width="2.8"/>
+              <path d="M15 18v14M25 18v14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+            Bagagens despachadas
+          </h2>
+
+          <div class="bags-summary">
+            <div class="summary-tile">
+              <div class="summary-value">2</div>
+              <div class="summary-label">Quantidade</div>
+            </div>
+
+            <div class="summary-tile">
+              <div class="summary-value">41,5 kg</div>
+              <div class="summary-label">Peso total</div>
+            </div>
+          </div>
+
+          <div class="bag-list">
+            <article class="bag-item">
+              <div class="bag-icon" aria-hidden="true">
+                <svg width="38" height="38" viewBox="0 0 86 86">
+                  <path d="M31 27v-6c0-6 5-11 11-11h4c6 0 11 5 11 11v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+                  <rect x="18" y="27" width="52" height="45" rx="9" fill="currentColor" opacity=".18"/>
+                  <rect x="18" y="27" width="52" height="45" rx="9" fill="none" stroke="currentColor" stroke-width="5"/>
+                  <path d="M29 35v31M58 35v31" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                  <circle cx="29" cy="76" r="4" fill="#334155"/>
+                  <circle cx="57" cy="76" r="4" fill="#334155"/>
+                </svg>
+              </div>
+
+              <div>
+                <div class="bag-name">Bagagem 1</div>
+                <div class="bag-tag">Tag G3 123456</div>
+              </div>
+
+              <div class="bag-weight">23,0 kg</div>
+            </article>
+
+            <article class="bag-item">
+              <div class="bag-icon" aria-hidden="true">
+                <svg width="38" height="38" viewBox="0 0 86 86">
+                  <path d="M31 27v-6c0-6 5-11 11-11h4c6 0 11 5 11 11v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+                  <rect x="18" y="27" width="52" height="45" rx="9" fill="currentColor" opacity=".18"/>
+                  <rect x="18" y="27" width="52" height="45" rx="9" fill="none" stroke="currentColor" stroke-width="5"/>
+                  <path d="M29 35v31M58 35v31" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                  <circle cx="29" cy="76" r="4" fill="#334155"/>
+                  <circle cx="57" cy="76" r="4" fill="#334155"/>
+                </svg>
+              </div>
+
+              <div>
+                <div class="bag-name">Bagagem 2</div>
+                <div class="bag-tag">Tag G3 123457</div>
+              </div>
+
+              <div class="bag-weight">18,5 kg</div>
+            </article>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="baggage-flow" aria-label="Fluxo da bagagem">
+      <div class="flow-header">
+        <div>
+          <span class="flow-kicker">Acompanhamento da bagagem</span>
+          <h2 class="flow-title">Fluxo da sua bagagem</h2>
+          <p class="flow-subtitle">Acompanhe cada etapa da sua bagagem de forma simples. O destaque em laranja mostra onde ela está neste momento.</p>
+        </div>
+
+        <div class="flow-current-status">
+          <strong>Etapa atual</strong>
+          <span>Em carregamento para a aeronave</span>
+        </div>
+      </div>
+
+      <div class="steps">
+        <article class="step done">
+          <div class="step-header">
+            <div class="step-number">1</div>
+
+            <div class="step-content">
+              <h2 class="step-title">Triagem</h2>
+              <span class="status-pill status-green">Concluído</span>
+              <p class="step-description">Sua bagagem foi recebida e passou pela etapa inicial de triagem.</p>
+            </div>
+          </div>
+
+          <div class="image-area">
+            <img src="./imgs/triagem.png" alt="Bagagem na triagem">
+          </div>
+
+          <div class="step-footer">
+            <div class="step-meta"><span class="step-meta-dot"></span>11:25</div>
+            <div class="step-state">Finalizado</div>
+          </div>
+        </article>
+
+        <article class="step active">
+          <div class="step-header">
+            <div class="step-number">2</div>
+
+            <div class="step-content">
+              <h2 class="step-title">Em carregamento</h2>
+              <span class="status-pill status-orange">Em andamento</span>
+              <p class="step-description">Sua bagagem está sendo direcionada para a aeronave neste momento.</p>
+            </div>
+          </div>
+
+          <div class="image-area">
+            <img src="./imgs/rampa.png" alt="Bagagem em trânsito na rampa">
+          </div>
+
+          <div class="step-footer">
+            <div class="step-meta"><span class="step-meta-dot"></span>11:40</div>
+            <div class="step-state">Etapa atual</div>
+          </div>
+        </article>
+
+        <article class="step">
+          <div class="step-header">
+            <div class="step-number">3</div>
+
+            <div class="step-content">
+              <h2 class="step-title">Bagagem embarcada</h2>
+              <span class="status-pill status-blue">Próxima etapa</span>
+              <p class="step-description">Em seguida, sua bagagem ficará armazenada dentro da aeronave.</p>
+            </div>
+          </div>
+
+          <div class="image-area">
+            <img src="./imgs/aeronave.png" alt="Bagagem sendo carregada na aeronave">
+          </div>
+
+          <div class="step-footer">
+            <div class="step-meta"><span class="step-meta-dot"></span>--:--</div>
+            <div class="step-state">Aguardando</div>
+          </div>
+        </article>
+
+        <article class="step">
+          <div class="step-header">
+            <div class="step-number">4</div>
+
+            <div class="step-content">
+              <h2 class="step-title">Chegada da bagagem</h2>
+              <span class="status-pill status-blue">Última etapa</span>
+              <p class="step-description">Após o pouso, sua bagagem estará pronta para retirada no destino.</p>
+            </div>
+          </div>
+
+          <div class="image-area">
+            <img src="./imgs/desembarque.png" alt="Bagagem na esteira de desembarque">
+          </div>
+
+          <div class="step-footer">
+            <div class="step-meta"><span class="step-meta-dot"></span>--:--</div>
+            <div class="step-state">Aguardando</div>
+          </div>
+        </article>
+      </div>
+
+      <div class="progress">
+        <div class="progress-item">
+          <div class="progress-marker done">✓</div>
+          <div class="progress-label">Triagem</div>
+          <div class="progress-time">11:25</div>
+        </div>
+
+        <div class="progress-item">
+          <div class="progress-marker current"></div>
+          <div class="progress-label">Carregamento</div>
+          <div class="progress-time">11:40</div>
+        </div>
+
+        <div class="progress-item">
+          <div class="progress-marker"></div>
+          <div class="progress-label">Embarcada</div>
+          <div class="progress-time">--:--</div>
+        </div>
+
+        <div class="progress-item">
+          <div class="progress-marker"></div>
+          <div class="progress-label">Chegada</div>
+          <div class="progress-time">--:--</div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
